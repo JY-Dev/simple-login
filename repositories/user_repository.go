@@ -9,6 +9,7 @@ import (
 type UserRepository interface {
 	Save(user models.User) error
 	ExistEmail(email string) bool
+	FindUser(email string) models.User
 }
 
 type memoryUserRepository struct {
@@ -41,4 +42,11 @@ func (r *memoryUserRepository) ExistEmail(email string) bool {
 	_, existUser := r.registerUsers[email]
 
 	return existUser
+}
+
+func (r *memoryUserRepository) FindUser(email string) models.User {
+
+	user, _ := r.registerUsers[email]
+
+	return user
 }
