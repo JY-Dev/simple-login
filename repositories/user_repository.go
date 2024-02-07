@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"fmt"
 	"simple-login/models"
 	"sync"
 )
@@ -9,7 +10,7 @@ import (
 type UserRepository interface {
 	Save(user models.User) error
 	ExistEmail(email string) bool
-	FindUser(email string) models.User
+	FindUser(email string) (models.User, error)
 }
 
 type memoryUserRepository struct {
@@ -18,10 +19,18 @@ type memoryUserRepository struct {
 	mu            sync.Mutex
 }
 
-func NewMemoryUserRepository() UserRepository {
-	return &memoryUserRepository{
-		registerUsers: make(map[string]models.User),
-	}
+var (
+	once           sync.Once
+	userRepository UserRepository
+)
+
+func MemoryUserRepository() UserRepository {
+	once.Do(func() {
+		userRepository = &memoryUserRepository{
+			registerUsers: make(map[string]models.User),
+		}
+	})
+	return userRepository
 }
 
 func (r *memoryUserRepository) Save(user models.User) error {
@@ -33,7 +42,6 @@ func (r *memoryUserRepository) Save(user models.User) error {
 	}
 
 	r.registerUsers[user.Email] = user
-
 	return nil
 }
 
@@ -44,9 +52,12 @@ func (r *memoryUserRepository) ExistEmail(email string) bool {
 	return existUser
 }
 
-func (r *memoryUserRepository) FindUser(email string) models.User {
+func (r *memoryUserRepository) FindUser(email string) (models.User, error) {
+	fmt.Println(len(r.registerUsers))
+	user, exist := r.registerUsers[email]
+	if exist {
+		return user, nil
+	}
 
-	user, _ := r.registerUsers[email]
-
-	return user
+	return models.User{}, errors.New("유저가 존재하지 않습니다")
 }

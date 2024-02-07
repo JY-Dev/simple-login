@@ -1,9 +1,8 @@
 package services
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
+	"golang.org/x/crypto/bcrypt"
 	"simple-login/dtos"
 	"simple-login/models"
 	"simple-login/repositories"
@@ -15,18 +14,18 @@ type UserUseCase struct {
 
 func NewUserUseCase() UserUseCase {
 	return UserUseCase{
-		userRepository: repositories.NewMemoryUserRepository(),
+		userRepository: repositories.MemoryUserRepository(),
 	}
 }
 
 func (u *UserUseCase) CreateUser(userDto dtos.CreateUserDto) error {
 
-	encryptedPassword := encrypted(userDto.Password)
+	encryptedPassword, _ := bcrypt.GenerateFromPassword([]byte(userDto.Password), bcrypt.DefaultCost)
 
 	newUser := &models.User{
 		Nickname: userDto.Nickname,
 		Email:    userDto.Email,
-		Password: encryptedPassword,
+		Password: string(encryptedPassword),
 	}
 
 	err := u.userRepository.Save(*newUser)
@@ -35,13 +34,4 @@ func (u *UserUseCase) CreateUser(userDto dtos.CreateUserDto) error {
 	}
 
 	return nil
-}
-
-func encrypted(password string) string {
-
-	passwordBytes := []byte(password)
-
-	hash := sha256.Sum256(passwordBytes)
-
-	return hex.EncodeToString(hash[:])
 }
