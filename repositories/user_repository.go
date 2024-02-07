@@ -28,7 +28,7 @@ func (r *memoryUserRepository) Save(user models.User) error {
 	defer r.mu.Unlock()
 
 	if r.ExistEmail(user.Email) {
-		return errors.New("유저 정보 등록 실패")
+		return errors.New("해당 이메일로 등록된 유저가 존재합니다")
 	}
 
 	r.registerUsers[user.Email] = user

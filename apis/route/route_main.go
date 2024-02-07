@@ -2,15 +2,14 @@ package route
 
 import (
 	"github.com/gin-gonic/gin"
+	"simple-login/apis/handlers"
 )
-
-type RouteRegistrer interface {
-	RegisterRoutes(router *gin.RouterGroup, basePath string)
-}
 
 func NewRouter() *gin.Engine {
 
 	router := gin.Default()
+	userHandler := handlers.NewUserHandler()
+	userHandler.RegisterRoutes(router.Group("/user"))
 
 	return router
 }
